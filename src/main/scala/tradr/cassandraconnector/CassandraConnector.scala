@@ -88,6 +88,7 @@ object CassandraConnector {
 
 
 
+
   /**
     * Get a set of A3CPredictionResults start Cassandra
     * @todo this in a cassandra connector
@@ -116,21 +117,17 @@ object CassandraConnector {
       conf
     )
 
-
     FutureConverters
       .toScala[AsyncResultSet](asyncResultSet)
       .map {
         resultSet =>
-          var results = Seq[A3CPredictionResult]()
+          var results = Seq[(String, Long, Array[Double], Double)]()
           resultSet.forEach({
             row =>
-              val prediction = A3CPredictionResult(
-                model = row.getString(0),
-                timestamp = row.getLong(1),
-                actionProbabilities = row.get[Array[Double]](2, classOf[Array[Double]]),
-                valuePrediction = row.getDouble(3)
-              )
-              results = results :+ prediction
+              results = results :+ (row.getString(0),
+                row.getLong(1),
+                row.get[Array[Double]](2, classOf[Array[Double]]),
+                row.getDouble(3))
           })
           results
       }

@@ -1,6 +1,6 @@
 
 lazy val libdeps = Seq(
-  "tradr" %% "tradr-common" % "0.0.1-SNAPSHOT",
+  "tradr" %% "tradr-common" % "0.0.1",
   "com.datastax.oss" % "java-driver-core" % "4.0.0-alpha1",
   "com.datastax.oss" % "java-driver-parent" % "4.0.0-alpha1",
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"

@@ -1,8 +1,9 @@
 package tradr.cassandraconnector
 
 import java.net.InetSocketAddress
+import java.util.function.Consumer
 
-import com.datastax.oss.driver.api.core.cql.AsyncResultSet
+import com.datastax.oss.driver.api.core.cql.{AsyncResultSet, Row}
 import com.datastax.oss.driver.api.core.{Cluster, CqlIdentifier}
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader
 import com.typesafe.config.Config
@@ -78,8 +79,10 @@ object CassandraConnector {
       .map{
         resultSet =>
           var results = Seq[PricingPoint]()
+
+
           resultSet.forEach({
-            row =>
+            case (row: Row) =>
               val point = PricingPoint(
                 timestamp = row.getLong(0),
                 currencyPair = row.getString(1),
@@ -128,7 +131,7 @@ object CassandraConnector {
         resultSet =>
           var results = Seq[PredictionResult]()
           resultSet.forEach({
-            row =>
+            case (row: Row) =>
               val probabilities = row.get[Array[Double]](2, classOf[Array[Double]])
               val valuePrediction = Array(row.getDouble(4))
 

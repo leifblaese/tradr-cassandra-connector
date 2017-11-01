@@ -1,6 +1,7 @@
 package tradr.cassandraconnector
 
 import java.net.InetSocketAddress
+
 import com.datastax.oss.driver.api.core.cql.AsyncResultSet
 import com.datastax.oss.driver.api.core.{Cluster, CqlIdentifier}
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader
@@ -9,7 +10,7 @@ import tradr.common.PricingPoint
 import tradr.common.trading.{Currencies, Instruments, Portfolio}
 
 import scala.compat.java8.FutureConverters
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
 object CassandraConnector {
@@ -59,6 +60,8 @@ object CassandraConnector {
                        instrument: Instruments.Value,
                        conf: Config): Future[Seq[PricingPoint]] = {
 
+    implicit val ec = ExecutionContext.global
+
     val keyspace = conf.getString("cassandra.keyspace")
     val tablename = conf.getString("cassandra.currencyTable")
 
@@ -101,6 +104,7 @@ object CassandraConnector {
     * @return
     */
   def getPredictions(from: Long, to: Long, modelName: String, conf: Config) = {
+    implicit val ec = ExecutionContext.global
 
     val keyspace = conf.getString("cassandra.keyspace")
     val tablename = conf.getString("cassandra.predictionTable")
@@ -149,8 +153,9 @@ object CassandraConnector {
   def getPortfolioValues(portfolioid: String,
                          from: Long,
                          to: Long,
-                         conf: Config): Future[Map[Long, Portfolio]] = {
+                         conf: Config): Future[Seq[(Long, Portfolio)]] = {
 
+    implicit val ec = ExecutionContext.global
 
     val keyspace = conf.getString("cassandra.keyspace")
     val tablename = conf.getString("cassandra.portfolioTable")
@@ -179,8 +184,8 @@ object CassandraConnector {
             .groupBy { case (time, currency, value) => time }
             .map { case (time, seq) =>
               val map = seq.map { case (t, c, v) => Currencies.get(c) -> v }.toMap
-              time -> Portfolio(portfolioid, map)
-            }
+              (time, Portfolio(portfolioid, map))
+            }.toSeq
       }
 
   }

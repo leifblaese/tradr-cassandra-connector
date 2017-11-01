@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.12.3",
     crossScalaVersions := Seq("2.11.11", "2.12.3"),
     libraryDependencies ++= libdeps,
+    version := "0.0.2",
     assemblyJarName in assembly :=  s"${name.value}_${scalaVersion.value}-${version.value}.jar"
   ))
 

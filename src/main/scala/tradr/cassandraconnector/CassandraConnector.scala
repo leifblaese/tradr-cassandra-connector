@@ -56,7 +56,7 @@ object CassandraConnector {
     * @param conf
     * @return
     */
-  private def getRates(from: Long, to: Long,
+  def getRates(from: Long, to: Long,
                        instrument: Instruments.Value,
                        conf: Config): Future[Seq[PricingPoint]] = {
 

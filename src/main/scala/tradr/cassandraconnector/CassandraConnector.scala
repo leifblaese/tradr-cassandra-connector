@@ -7,6 +7,7 @@ import com.datastax.oss.driver.api.core.{Cluster, CqlIdentifier}
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultDriverConfigLoader
 import com.typesafe.config.Config
 import tradr.common.PricingPoint
+import tradr.common.predictor.PredictionResult
 import tradr.common.trading.{Currencies, Instruments, Portfolio}
 
 import scala.compat.java8.FutureConverters
@@ -125,13 +126,23 @@ object CassandraConnector {
       .toScala[AsyncResultSet](asyncResultSet)
       .map {
         resultSet =>
-          var results = Seq[(String, Long, Array[Double], Double)]()
+          var results = Seq[PredictionResult]()
           resultSet.forEach({
             row =>
-              results = results :+ (row.getString(0),
-                row.getLong(1),
-                row.get[Array[Double]](2, classOf[Array[Double]]),
-                row.getDouble(3))
+              val probabilities = row.get[Array[Double]](2, classOf[Array[Double]])
+              val valuePrediction = Array(row.getDouble(4))
+
+              val predictionResult = PredictionResult(
+                modelId = row.getString(0),
+                timestamp = row.getLong(1),
+                predictionId = row.getString(3),
+                results = Map(
+                  "probabilities" -> probabilities,
+                  "valuePrediction" -> valuePrediction
+                )
+              )
+
+              results = results :+ predictionResult
           })
           results
       }
